@@ -1,0 +1,70 @@
+{
+  "testedWith": {
+    "dsh": "0.1.2-rc.1",
+    "node": ">=22",
+    "pnpm": "9.x",
+    "platformsVerified": ["macOS (verified)", "Windows (adapted, not yet verified on device)"]
+  },
+  "profile": "web",
+  "plugins": [
+    {
+      "name": "picturereader",
+      "version": "3.3.1",
+      "purpose": "读图：像素扫描/OCR/裁剪/调色板/修图，让纯文本模型读图",
+      "platforms": { "macos": "ok", "windows": "ok", "linux": "ok" },
+      "setup": {
+        "macos": "OCR 引擎 macos 需编译一次：node node_modules/picturereader/scripts/setup-macos.mjs（需 Xcode CLT）",
+        "windows": "使用内置 windows OCR 引擎，无需安装"
+      },
+      "notes": "image_scan/image_ocr 仅支持 PNG/JPEG/GIF/BMP；WebP 需先转码（macOS: sips；Windows: 画图另存或 magick）"
+    },
+    {
+      "name": "dsh-video-understand",
+      "version": "0.5.2",
+      "purpose": "视频理解：B站/本地视频 → ASR+场景+轨迹 → 摘要/问答",
+      "platforms": { "macos": "ok", "windows": "ok", "linux": "ok" },
+      "setup": {
+        "all": "需 ffmpeg；首次调用自动建 venv（约 200-300MB，优先 uv）",
+        "windows": "winget install Gyan.FFmpeg ; winget install Python.Python.3.13"
+      },
+      "notes": "默认 L0 全本地；L1/L2 会把视频帧发到云端 VLM（默认关）。摘要阶段需 LLM_API_URL/LLM_MODEL/LLM_API_KEY"
+    },
+    {
+      "name": "@paicat1/dsh-screenshot",
+      "version": "1.2.0",
+      "purpose": "轻量截图：热键/相机按钮截图落盘，仅传路径",
+      "platforms": { "macos": "ok", "windows": "ok (native PrintWindow)", "linux": "partial" },
+      "notes": "agent 工具 modlens_screenshot 仅在检测到 modlens CLI 时注册；如需 agent 自助截图另行安装 @liustack/modlens"
+    },
+    {
+      "name": "dsh-deepseek-balance",
+      "version": "0.1.0",
+      "purpose": "余额实时显示：常驻余额（15s 刷新）+ 本会话费用（官价/峰谷）",
+      "platforms": { "macos": "ok", "windows": "ok", "linux": "ok" },
+      "notes": "host 侧调用 https://api.deepseek.com/user/balance；key 来自 DEEPSEEK_API_KEY 或 ~/.dsh/.credentials.yaml；key 不进浏览器"
+    },
+    {
+      "name": "dsh-better",
+      "version": "0.5.5",
+      "purpose": "系统通知：任务完成/提问或选项/出错，三类可分别开关",
+      "platforms": { "macos": "ok", "windows": "ok (Toast)", "linux": "ok (freedesktop)" },
+      "notes": "基于浏览器 Notification API：需授权、页面保持打开；另含归档管理/更新检查/模型路由等可关模块"
+    }
+  ],
+  "skills": [
+    {
+      "name": "upload-consent-guard",
+      "purpose": "上传到外部非本人账户/空间前必须说明+警示+征得同意"
+    },
+    {
+      "name": "screen-capture-guide",
+      "purpose": "截屏指引：工具优先，其次系统截图（macOS/Windows/Linux），禁用浏览器自动化截屏"
+    }
+  ],
+  "knownIncompatibleOnRc1": [
+    "mermaid 渲染类插件（缺 data-conversation-scroll / 无 mermaid 支持）",
+    "dsh-image-serve（仅 Windows 盘符路径，macOS 无效）",
+    "dsh-appearance-gallery（rc.1 设置面板消失）",
+    "回答内嵌流程图/本地图片（0.1.5+ 才支持）"
+  ]
+}
