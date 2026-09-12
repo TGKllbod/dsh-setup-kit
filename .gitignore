@@ -8,3 +8,12 @@ node_modules/
 captures/
 *.log
 *.tmp
+
+# credentials / secrets — never commit
+.dsh/
+*.credentials*
+*credentials*.yaml
+*.key
+*.pem
+.env
+.env.*
