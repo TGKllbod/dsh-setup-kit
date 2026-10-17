@@ -1,0 +1,89 @@
+{
+  "format": 1,
+  "title": { "zh": "DSH 自用套件（TGKllbod）", "en": "DSH Setup Kit (TGKllbod)" },
+  "description": {
+    "zh": "个人验证过的 DSH 插件组合：读图、视频理解、截图、余额与通知。picturereader 在 0.2.1 需 allow-version 豁免（实测可用）。",
+    "en": "Personally verified DSH plugins: image reading, video understanding, screenshot, balance and notifications. picturereader needs a version exemption on 0.2.1 (works in testing)."
+  },
+  "metadata": {
+    "categories": { "tools": { "title": { "zh": "工具", "en": "Tools" } } },
+    "sortKeys": { "added": { "title": { "zh": "收录顺序", "en": "Added" }, "order": "asc" } }
+  },
+  "plugins": [
+    {
+      "name": "picturereader",
+      "title": { "zh": "读图/OCR", "en": "Image reading / OCR" },
+      "description": {
+        "zh": "像素扫描、OCR（macOS Vision / Windows OCR / RapidOCR）、裁剪、调色板与修图，让纯文本模型读图。0.2.1 需 allow-version 豁免（实测可用）。",
+        "en": "Pixel scan, OCR (macOS Vision / Windows OCR / RapidOCR), crop, palette and edit. On 0.2.1 requires a version exemption (verified working)."
+      },
+      "author": "jing-hy",
+      "homepage": "https://github.com/jing-hy/picturereader",
+      "repository": { "url": "https://github.com/jing-hy/picturereader" },
+      "metadata": { "category": "tools", "sortKeys": { "added": 1 } },
+      "versions": [
+        { "version": "3.3.3", "publishTimestamp": 1792250000, "source": { "type": "npm" }, "engines": { "dsh": ">=0.1.5-rc.1" } }
+      ]
+    },
+    {
+      "name": "dsh-video-understand",
+      "title": { "zh": "视频理解", "en": "Video understanding" },
+      "description": {
+        "zh": "B站/本地视频 → ASR+场景+轨迹信息层 → 摘要/问答，默认 L0 全本地。",
+        "en": "Bilibili/local video → ASR + scene + trajectory layer → summary/QA; local by default."
+      },
+      "author": "ilps2",
+      "homepage": "https://github.com/ilps2/dsh-video-understand",
+      "repository": { "url": "https://github.com/ilps2/dsh-video-understand" },
+      "metadata": { "category": "tools", "sortKeys": { "added": 2 } },
+      "versions": [
+        { "version": "0.5.2", "publishTimestamp": 1792250000, "source": { "type": "npm" }, "engines": { "dsh": ">=0.1.5-rc.1" } }
+      ]
+    },
+    {
+      "name": "@paicat1/dsh-screenshot",
+      "title": { "zh": "轻量截图", "en": "Lightweight screenshot" },
+      "description": {
+        "zh": "热键/相机按钮截图落盘，只传路径；Windows 走原生 PrintWindow。",
+        "en": "Hotkey/camera capture to disk, passes paths only; native PrintWindow on Windows."
+      },
+      "author": "paicat1",
+      "homepage": "https://github.com/paicat1/dsh-screenshot",
+      "repository": { "url": "https://github.com/paicat1/dsh-screenshot" },
+      "metadata": { "category": "tools", "sortKeys": { "added": 3 } },
+      "versions": [
+        { "version": "1.2.0", "publishTimestamp": 1792250000, "source": { "type": "npm" }, "engines": { "dsh": ">=0.1.5-rc.1" } }
+      ]
+    },
+    {
+      "name": "dsh-deepseek-balance",
+      "title": { "zh": "余额实时显示", "en": "Live DeepSeek balance" },
+      "description": {
+        "zh": "输入区旁常驻 DeepSeek 账户余额（15s 刷新）与本会话费用估算（官价/峰谷）。",
+        "en": "Persistent DeepSeek account balance (15s refresh) plus per-session cost estimate (official pricing, peak/off-peak)."
+      },
+      "author": "CN-Leo",
+      "homepage": "https://github.com/CN-Leo/dsh-deepseek-balance",
+      "repository": { "url": "https://github.com/CN-Leo/dsh-deepseek-balance" },
+      "metadata": { "category": "tools", "sortKeys": { "added": 4 } },
+      "versions": [
+        { "version": "0.1.0", "publishTimestamp": 1792250000, "source": { "type": "npm" }, "engines": { "dsh": ">=0.1.5-rc.1" } }
+      ]
+    },
+    {
+      "name": "dsh-better",
+      "title": { "zh": "系统通知", "en": "Desktop notifications" },
+      "description": {
+        "zh": "任务完成 / 提问或选项 / 出错三类系统通知（浏览器 Notification API），可分别开关。0.2.1 需 allow-version 豁免（实测可用）。",
+        "en": "System notifications for task completion / questions / errors via the browser Notification API; separately toggleable. On 0.2.1 requires a version exemption (verified working)."
+      },
+      "author": "wackyju2-beep",
+      "homepage": "https://github.com/wackyju2-beep/dsh-better",
+      "repository": { "url": "https://github.com/wackyju2-beep/dsh-better" },
+      "metadata": { "category": "tools", "sortKeys": { "added": 5 } },
+      "versions": [
+        { "version": "0.5.5", "publishTimestamp": 1792250000, "source": { "type": "npm" }, "engines": { "dsh": ">=0.1.5-rc.1" } }
+      ]
+    }
+  ]
+}
