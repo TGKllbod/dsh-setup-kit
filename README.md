@@ -112,6 +112,30 @@ tar -xzf ~/.dsh-backups/dsh-sessions-<ts>.tar.gz -C "$HOME"
 
 ---
 
+## 踩坑复盘：一次把 dsh 搞到"卡死"的教训（2026-10-18）
+
+**现象**：在 0.2.1-rc.2 上强行启用被兼容检查拒绝的 `picturereader` 后重启，`dsh web` 启动失败：
+
+```
+Failed to load plugins
+web boot: 1 entry did not activate
+picturereader: pending（waiting for service: settingsScope）
+```
+
+GUI 整体不可操作，最后靠人工移除插件依赖/目录才恢复。
+
+**根因**：0.2.x 移除了第三方客户端插件依赖的 `settingsScope`；被兼容检查拒绝 = 该版本不可用。`allow-version --accept-risk` 只是跳过确认，**并不修复不兼容**；`--dump-config` 只验证配置可组合，**发现不了客户端 entry 激活失败**。
+
+**以后必须遵守**：
+1. 兼容性被拒的插件 → 禁用等上游更新；不 `allow-version --accept-risk` 强装（尤其 client 插件）。
+2. 不手改 `dsh.profile.bundles`；只用官方插件管理器/`dsh plugin`，并确认无兼容性警告。
+3. 插件变更后先做**真实启动冒烟**（临时 profile/备用端口启动并访问 `/`，确认无 `Failed to load plugins`），再让用户重启正式 GUI。
+4. 一次只改一项；改前备份 `package.json`、`cordis.patch.yml`、`pnpm-lock.yaml`。
+5. 用户终端要有可用的 `pnpm`（如 `~/.local/bin/pnpm`），否则手动 `dsh plugin add/remove` 会 `spawn pnpm ENOENT`（本次已发生）。
+6. 看到 `pending（waiting for service: …）`：移除该插件 deps+bundles 后重启，别反复重启碰运气。
+
+---
+
 ## 平台差异与适配要点
 
 | 事项 | macOS | Windows |
@@ -177,3 +201,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 |---|---|
 | 2026-09-09 | 首次整理：基于 dsh 0.1.2-rc.1，收录 5 个插件 + 2 个 skills，macOS 实测、Windows 适配说明 |
 | 2026-10-18 | 更新至 dsh 0.2.1-rc.2（实测通过）；新增 `safe-upgrade` 脚本与 skill、升级/回滚章节、V3 会话迁移与镜像加速说明；注明 4.1 模型 id `deepseek-flash` |
+| 2026-10-18 | 补充「踩坑复盘」：禁止 allow-version 强装不兼容插件、禁止手改 bundles、必须做启动冒烟测试（`pending waiting for service: settingsScope` 事故） |
