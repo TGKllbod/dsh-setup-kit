@@ -104,18 +104,20 @@ install -m 755 scripts/dsh-ocr   ~/.local/bin/dsh-ocr
 配套 `dsh-ocr <图片>`：不依赖插件的本地 OCR（macOS Vision，长图自动分片），用于读图/读超长截图。
 插件功能与必要性审计见 [`docs/plugin-audit.md`](./docs/plugin-audit.md)。
 
-### 通知内容长度（本地补丁，二选一）
+### 通知内容长度（本地补丁，按需组合）
 
-`dsh-notify-plugin` 硬编码「用户问题 200 字 + 助手回复 500 字」，微信单条上限 2000 字。提供两个幂等补丁：
+`dsh-notify-plugin` 硬编码「用户问题 200 字 + 助手回复 500 字」，微信单条上限 2000 字。提供三个幂等补丁：
 
 ```bash
-bash scripts/patch-notify-fulltext.sh     # 推荐：问题 500 / 回复 4000，微信端超 1800 字自动分片发送
-bash scripts/patch-notify-length.sh       # 轻量：问题 300 / 回复 1500，仍为单条消息
+bash scripts/patch-notify-fulltext.sh   # 全文基础：问题 500 / 回复 4000，微信超 1800 字自动分片
+bash scripts/patch-notify-source.sh     # 来源感知：微信来源→精简单条(200/500)；Web(Mac/PC)→全文(≤12000 字)
+bash scripts/patch-notify-length.sh     # 轻量单条：问题 300 / 回复 1500（不推荐与上面混用）
 ```
 
+- **来源判定**：插件记录自己注入的微信 prompt，通知生成时与"本轮最后一条用户消息"比对；一致 → 判为微信来源；
 - 分片补丁：长回复按行边界切成多条 ≤1800 字消息，片间 400ms（防限流），按顺序到达；
-- **重启后生效**（`dsh-safe boot`）；插件升级/重装后需重新运行；
-- 超过 4000 字的回复仍会截断；系统通知/webhook 也会收到更长的正文。
+- **重启后生效**（`dsh-safe boot`）；**插件升级/重装后需重新运行**；若三者都要，顺序：先 `fulltext` 再 `source`；
+- 超过上限的回复仍会截断（Web 来源上限 12000 字）；系统通知/webhook 也会收到更长的正文。
 
 ---
 
@@ -255,3 +257,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 | 2026-10-18 | 通知方案定为跨平台 `dsh-notify-plugin@1.4.6`（macOS osascript+afplay / Windows Toast / Linux notify-send）；移除 Windows-only 的 dsh-notify；审计标明 dsh-video-understand 在 0.2.1 下工具注册失败；守护新增 dump-config 预检与 bundle 全量核对 |
 | 2026-10-18 | 新增 `scripts/patch-notify-length.sh`：通知摘要 200/500 → 300/1500 字（微信单条 2000 上限内）；审计补充 Web 卡片不消失、微信仅文本/语音入站等已知限制 |
 | 2026-10-18 | 新增 `scripts/patch-notify-fulltext.sh`：通知摘要 500/4000 字 + 微信长消息按 1800 字分片发送（片间 400ms），解决微信通知显示不全 |
+| 2026-10-18 | 新增 `scripts/patch-notify-source.sh`：来源感知——微信来源的轮次通知精简单条（200/500），Mac/PC（Web）来源不截断（≤12000 字，分片发送） |
