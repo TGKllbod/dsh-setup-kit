@@ -36,7 +36,15 @@
 | 视频理解 | 暂用 ffmpeg 抽帧 + `dsh-ocr` / 模型原生图片输入；等插件修复 |
 | 启动安全 | `dsh-safe boot/check/plugin add|remove`：快照 + 隔离冒烟 + 自动回滚（见 README「启动守护」） |
 
-## 四、原则
+## 四、已知限制与本地补丁（2026-10-18）
+
+**dsh-notify-plugin 1.4.6（无版本可升）**
+- 通知正文硬编码：用户问题 200 字 + 助手回复 500 字；微信单条文本上限 2000 字。已用 `scripts/patch-notify-length.sh` 改为 **300 / 1500**（总长≈1900，单条消息；重启生效；插件升级后需重跑）。
+- Web 端卡片不消失：微信先答时，插件的 `dropPending` 只清理聊天侧待处理项，**没有反向让 Web UI 关闭卡片**；属于前端集成限制，结果不受影响，回到 Web 刷新页面即可。
+- 微信入站仅支持**文本**与**语音转写**；图片/文件/视频被忽略（源码注释明确 media-only messages 被忽略）。iLink 协议本身支持媒体（参见社区 `Liu-zhongxian/wechat-bridge`），但本插件未实现；替代：文件传输助手/AirDrop 到 Mac 后在 Web 拖图，或本地路径 + `dsh-ocr`/ffmpeg 抽帧。
+- 微信侧交互白名单 `toUserIds` 已填入本人；`interactive` 关闭会同时禁用所有微信入站（含续聊），只保留推送。
+
+## 五、原则
 - **必要性 ≠ 装上就好**：兼容性被拒的插件 = 该版本不可用；客户端插件激活失败会直接阻塞 GUI。
 - 所有变更走 `dsh-safe`：快照 → 变更 → 隔离冒烟（含 dump-config 预检 + bundle 全量核对 + 真实启动）→ 失败自动回滚。
 - 变更后重启一律用 `dsh-safe boot`，不再裸跑 `dsh web`。

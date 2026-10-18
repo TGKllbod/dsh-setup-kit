@@ -104,6 +104,18 @@ install -m 755 scripts/dsh-ocr   ~/.local/bin/dsh-ocr
 配套 `dsh-ocr <图片>`：不依赖插件的本地 OCR（macOS Vision，长图自动分片），用于读图/读超长截图。
 插件功能与必要性审计见 [`docs/plugin-audit.md`](./docs/plugin-audit.md)。
 
+### 通知摘要长度（本地补丁）
+
+`dsh-notify-plugin` 把通知正文硬编码为「用户问题 200 字 + 助手回复 500 字」（微信单条上限 2000 字），长回答的通知常被截断。本仓库提供幂等补丁：
+
+```bash
+bash scripts/patch-notify-length.sh        # 默认改为 问题 300 / 回复 1500
+```
+
+- 补丁后总长约 1900 字，仍是**单条**微信消息、不会触发二次截断；
+- **重启后生效**（`dsh-safe boot`）；插件升级/重装后需重新运行；
+- 仍超过 1500 字的回复只显示前半段——需要全文时把要点放前面，或后续做"分段发送"补丁。
+
 ---
 
 ## 升级 DSH（安全流程）
@@ -240,3 +252,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 | 2026-10-18 | 补充「踩坑复盘」：禁止 allow-version 强装不兼容插件、禁止手改 bundles、必须做启动冒烟测试（`pending waiting for service: settingsScope` 事故） |
 | 2026-10-18 | 新增 `scripts/dsh-safe.sh` 启动守护（隔离冒烟 + 失败自动回滚）与 `scripts/dsh-ocr` OCR 兜底、`dsh-boot-guard` skill、`docs/plugin-audit.md`；补充故障恢复正确流程与危险操作警告 |
 | 2026-10-18 | 通知方案定为跨平台 `dsh-notify-plugin@1.4.6`（macOS osascript+afplay / Windows Toast / Linux notify-send）；移除 Windows-only 的 dsh-notify；审计标明 dsh-video-understand 在 0.2.1 下工具注册失败；守护新增 dump-config 预检与 bundle 全量核对 |
+| 2026-10-18 | 新增 `scripts/patch-notify-length.sh`：通知摘要 200/500 → 300/1500 字（微信单条 2000 上限内）；审计补充 Web 卡片不消失、微信仅文本/语音入站等已知限制 |
