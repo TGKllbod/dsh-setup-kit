@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# dsh-ocr — 本地 OCR 兜底工具（不依赖 dsh 插件；长图自动分片）
+# 用法：dsh-ocr <图片路径> [--json]
+# 依赖：macOS Vision OCR 二进制（picturereader 编译产物或自定义），以及 python3+Pillow（长图分片）
+set -euo pipefail
+
+BIN="${DSH_OCR_BIN:-$HOME/.dsh/cache/picturereader/macos-ocr}"
+[ -x "$BIN" ] || { echo "dsh-ocr: 找不到 OCR 二进制：$BIN（可用 DSH_OCR_BIN 指定）" >&2; exit 2; }
+[ $# -ge 1 ] || { echo "用法: dsh-ocr <图片路径> [--json]" >&2; exit 2; }
+IMG="$1"; MODE="${2:-}"
+[ -f "$IMG" ] || { echo "dsh-ocr: 文件不存在：$IMG" >&2; exit 2; }
+
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+RAW="$TMP/raw.jsonl"; : > "$RAW"
+
+# 用 python 读取尺寸；高度 > 2100 时切成 2000px 高的片，返回分片数（0=整图）
+COUNT="$(python3 - "$IMG" "$TMP" <<'PY'
+import sys
+try:
+    from PIL import Image
+except Exception:
+    print(0); sys.exit(0)
+src, out = sys.argv[1], sys.argv[2]
+im = Image.open(src)
+W, H = im.size
+if H <= 2100:
+    print(0); sys.exit(0)
+im = im.convert('RGB')
+n = 0
+for y in range(0, H, 2000):
+    im.crop((0, y, W, min(y + 2000, H))).save(f"{out}/slice_{n:03d}.png")
+    n += 1
+print(n)
+PY
+)"
+
+if [ "${COUNT:-0}" -gt 0 ]; then
+  for f in "$TMP"/slice_*.png; do "$BIN" "$f" 2>/dev/null >> "$RAW" || true; done
+else
+  "$BIN" "$IMG" >> "$RAW" || true
+fi
+
+python3 - "$RAW" "${MODE:-}" <<'PY'
+import sys, json
+raw_path, mode = sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else "")
+lines, seen = [], set()
+with open(raw_path, encoding="utf-8", errors="replace") as fh:
+    for raw in fh:
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            j = json.loads(raw)
+        except Exception:
+            continue
+        for l in j.get("lines", []):
+            t = (l.get("text") or "").strip()
+            if t and t not in seen:
+                seen.add(t); lines.append(l)
+if mode == "--json":
+    print(json.dumps({"lines": lines}, ensure_ascii=False, indent=1))
+else:
+    for l in lines:
+        print(l.get("text", ""))
+PY

@@ -81,6 +81,31 @@ Copy-Item -Recurse -Force .\skills\* "$env:USERPROFILE\.dsh\skills\"
 
 ---
 
+## 启动守护（防重启失败，强烈推荐）
+
+> 目标：**任何插件/profile 变更后，先验证能启动，再重启 GUI**；失败自动回滚，不把坏状态带给正式 GUI。
+
+```bash
+# 一次性安装到 PATH
+install -m 755 scripts/dsh-safe.sh ~/.local/bin/dsh-safe
+install -m 755 scripts/dsh-ocr   ~/.local/bin/dsh-ocr
+```
+
+| 命令 | 作用 |
+|---|---|
+| `dsh-safe check` | 隔离冒烟：临时 DSH_HOME + 随机端口启动一次，**读取当前 profile 但不写它** |
+| `dsh-safe boot` | 冒烟通过后才 `exec dsh --profile web`；失败自动从快照回滚 |
+| `dsh-safe plugin add <包>@<版本>` | 快照 → `dsh plugin` 变更 → 冒烟 → 失败自动回滚 |
+| `dsh-safe snapshot` / `dsh-safe rollback` | 手动快照 / 恢复 profile 清单 |
+
+判定依据：启动日志出现 `Failed to load plugins`、`entry did not activate`、`pending … waiting for service` → 失败；
+出现 `registration skipped / JsonSchemaError` → 功能降级警告（可启动）。
+
+配套 `dsh-ocr <图片>`：不依赖插件的本地 OCR（macOS Vision，长图自动分片），用于读图/读超长截图。
+插件功能与必要性审计见 [`docs/plugin-audit.md`](./docs/plugin-audit.md)。
+
+---
+
 ## 升级 DSH（安全流程）
 
 > 升级 dsh 主体不是 `dsh plugin` 能做的：要改 `deepseek-harness-runtime/package.json` 的 `@deepseek-ai/dsh` 版本并 npm 安装。
@@ -133,6 +158,17 @@ GUI 整体不可操作，最后靠人工移除插件依赖/目录才恢复。
 4. 一次只改一项；改前备份 `package.json`、`cordis.patch.yml`、`pnpm-lock.yaml`。
 5. 用户终端要有可用的 `pnpm`（如 `~/.local/bin/pnpm`），否则手动 `dsh plugin add/remove` 会 `spawn pnpm ENOENT`（本次已发生）。
 6. 看到 `pending（waiting for service: …）`：移除该插件 deps+bundles 后重启，别反复重启碰运气。
+
+### 正确的故障恢复顺序（别做危险操作）
+
+1. **回退清单**：`dsh-safe rollback`，或手工从 `profiles/web/package.json` 与 `cordis.patch.yml` 移除该插件的 deps/bundles 条目。
+   - ❌ 不要 `rm -rf ~/.dsh/profiles/web`（会丢全部插件/设置，豆包曾建议过）
+   - ❌ 不要 `npm uninstall -g @deepseek-ai/dsh` 全局重装（本机是 runtime 目录安装）
+   - ❌ 0.2.x 没有 `plugins.json`、没有 `dsh profile reset web`（这些是错误/过时说法；配置在 `profiles/web/package.json` + `cordis.patch.yml`）
+2. **插件命令需要 pnpm**：本机已装 `~/.local/bin/pnpm`；没有 pnpm 时 `dsh plugin remove` 会 `spawn pnpm ENOENT`，看起来像"卸载没生效"。
+3. 改完先 `dsh-safe check` 冒烟，通过后再启动/重启 GUI。
+4. 启动后浏览器 401 + "reopen the URL printed by dsh web" 是正常鉴权，从启动日志抄带 token 的 URL。
+5. 读图兜底：`dsh-ocr <图片>`（不依赖插件；长图自动分片）。
 
 ---
 
@@ -202,3 +238,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 | 2026-09-09 | 首次整理：基于 dsh 0.1.2-rc.1，收录 5 个插件 + 2 个 skills，macOS 实测、Windows 适配说明 |
 | 2026-10-18 | 更新至 dsh 0.2.1-rc.2（实测通过）；新增 `safe-upgrade` 脚本与 skill、升级/回滚章节、V3 会话迁移与镜像加速说明；注明 4.1 模型 id `deepseek-flash` |
 | 2026-10-18 | 补充「踩坑复盘」：禁止 allow-version 强装不兼容插件、禁止手改 bundles、必须做启动冒烟测试（`pending waiting for service: settingsScope` 事故） |
+| 2026-10-18 | 新增 `scripts/dsh-safe.sh` 启动守护（隔离冒烟 + 失败自动回滚）与 `scripts/dsh-ocr` OCR 兜底、`dsh-boot-guard` skill、`docs/plugin-audit.md`；补充故障恢复正确流程与危险操作警告 |
