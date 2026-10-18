@@ -12,13 +12,13 @@
 
 | 插件 | 版本 | 用途 | macOS | Windows |
 |---|---|---|---|---|
-| `picturereader` | 3.3.1 | **读图**：像素网格扫描 / OCR（多引擎）/ 裁剪 / 调色板 / 修图，让纯文本模型"看得见"图片 | ✅ OCR 引擎 `macos`（需编译，见下） | ✅ OCR 引擎 `windows`（系统内置，免装） |
-| `dsh-video-understand` | 0.5.2 | **视频理解**：B站/本地视频 → ASR+场景+轨迹信息层 → 摘要/问答（默认 L0 全本地） | ✅ | ✅（需 ffmpeg + Python） |
+| `picturereader`（0.2.x 不兼容，见备注） | 3.3.3 | **读图**：像素扫描/OCR/裁剪/调色板/修图；0.2.x 下不可用，读图改用 `dsh-ocr` + 4.1 原生图片输入 | ❌ | ❌ |
+| `dsh-notify-plugin` | 1.4.6 | **跨平台桌面通知**：完成/暂停/失败/提问/授权/计划审阅；macOS `osascript`+`afplay`，Windows Toast，Linux `notify-send`（webhook/企微/微信/Telegram 默认关闭） | ✅ | ✅ |
+| `dsh-video-understand` | 0.5.2 | **视频理解**（⚠️ 0.2.1 下工具注册失败、当前不可用，等上游修复） | ⚠️ | ⚠️ |
 | `@paicat1/dsh-screenshot` | 1.2.0 | **轻量截图**：人工热键/相机按钮 + 截图落盘（agent 工具需额外装 modlens，见可选增强） | ✅ | ✅（原生 PrintWindow，更贴合） |
 | `dsh-deepseek-balance` | 0.1.0 | **余额实时显示**：输入区旁常驻余额（15s 刷新）+ 本会话费用（官价/峰谷） | ✅ | ✅ |
-| `dsh-better` | 0.5.5 | **系统通知**：任务完成 / 提问或选项 / 出错三类通知（浏览器 Notification API → 系统通知中心） | ✅ | ✅（Windows Toast） |
 
-> 兼容性备注：`picturereader` 3.3.3 的 peer 声明只到 `^0.1.3-alpha.1`，**未声明支持 0.2.x**，但在 0.2.1-rc.2 上实测读图/OCR 正常；若未来新版本 API 变动导致异常，请先检查该插件是否有新版。
+> 兼容性备注：`picturereader` 3.3.3 与 `dsh-better` 0.5.5 **不兼容 0.2.x**（分别为 settingsScope 已移除、engines 写死 0.1.2），本仓库不推荐在 0.2.1 安装；读图改用 `dsh-ocr` + 4.1 原生图片输入，通知改用 `dsh-notify-plugin`（跨平台）。
 
 自研 skills（复制到用户级技能目录即全局生效）：
 
@@ -58,11 +58,11 @@ powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 ### 手动逐条（等价于脚本）
 
 ```bash
-dsh plugin --profile web add picturereader@3.3.1 -w
+# picturereader 3.3.3 与 0.2.x 不兼容（settingsScope 已移除），暂不安装
 dsh plugin --profile web add dsh-video-understand@0.5.2 -w
 dsh plugin --profile web add @paicat1/dsh-screenshot@1.2.0 -w
 dsh plugin --profile web add dsh-deepseek-balance@0.1.0 -w
-dsh plugin --profile web add dsh-better@0.5.5 -w
+dsh plugin --profile web add dsh-notify-plugin@1.4.6 -w
 ```
 
 skills：
@@ -179,7 +179,7 @@ GUI 整体不可操作，最后靠人工移除插件依赖/目录才恢复。
 | 用户级 skills 目录 | `~/.dsh/skills/` | `%USERPROFILE%\.dsh\skills\` |
 | 截图（人工） | 系统 `screencapture` | 插件原生通道（PrintWindow）/ PowerShell 截屏脚本 |
 | OCR 引擎 | 需编译一次：`node node_modules/picturereader/scripts/setup-macos.mjs`（需 Xcode 命令行工具） | 用内置 `windows` 引擎，**无需安装** |
-| 通知 | 浏览器通知 → 通知中心；需在 设置→dsh-better 开启 + 浏览器授权 | 同机制 → Windows Toast；另请在 系统设置→通知 允许浏览器通知 |
+| 通知 | `dsh-notify-plugin`：macOS `osascript` 系统通知 + `afplay` 提示音 | 同插件：Windows PowerShell Toast |
 | 余额 | host 侧 `curl` 请求官方接口；key 从 `~/.dsh/.credentials.yaml` 或环境变量 `DEEPSEEK_API_KEY` | 同左；Windows 10+ 自带 `curl.exe` |
 | 视频理解 | 需 `ffmpeg`（`brew install ffmpeg`）+ Python（首次调用自动建 venv） | `winget install Gyan.FFmpeg` + 安装 Python 并加入 PATH（`winget install Python.Python.3.13`） |
 | dsh 升级 | `bash scripts/safe-upgrade.sh <ver>` | 手工等价：备份 → 改 `runtime/package.json` → `npm install --registry=https://registry.npmmirror.com --prefer-offline` → `npm install-scripts approve …` → `npm rebuild` → 预检 |
@@ -190,7 +190,7 @@ GUI 整体不可操作，最后靠人工移除插件依赖/目录才恢复。
   `LLM_API_URL`（如 `https://api.deepseek.com/v1/chat/completions`）、`LLM_MODEL`（如 `deepseek-chat`）、`LLM_API_KEY`（不设则自动读 credentials 里的 `DEEPSEEK_API_KEY`）。
 - **视觉语义理解（"这是教室/有几个人"这类）** 需要真正的 VLM：设置 `GLM_API_KEY`（免费 GLM-4V-Flash，[注册](https://open.bigmodel.cn)）或 `SEE_API_KEY` 后重启，`vision_analyze` 即可给出语义描述；否则只能用像素+OCR 证据。
 - **Agent 自助截图**：`@paicat1/dsh-screenshot` 的 `modlens_screenshot` 工具**仅在检测到 modlens CLI 时注册**；需要它可另装 `@liustack/modlens`（注意其视觉路由需你自行配置可用 provider）。默认情况下人工热键/相机按钮仍可用。
-- **通知授权**：设置 → dsh-better → 打开三类通知 → 点"授权桌面通知"；浏览器站点权限需允许（页面需保持打开，这是 Notification API 的固有边界）。
+- **通知**：`dsh-notify-plugin` 默认启用系统通知（macOS `osascript` + `afplay`，Windows Toast，Linux notify-send）；在 设置 → 插件 → 通知 可调事件/声音；webhook/企微/微信/Telegram 渠道默认关闭。
 
 ---
 
@@ -239,3 +239,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 | 2026-10-18 | 更新至 dsh 0.2.1-rc.2（实测通过）；新增 `safe-upgrade` 脚本与 skill、升级/回滚章节、V3 会话迁移与镜像加速说明；注明 4.1 模型 id `deepseek-flash` |
 | 2026-10-18 | 补充「踩坑复盘」：禁止 allow-version 强装不兼容插件、禁止手改 bundles、必须做启动冒烟测试（`pending waiting for service: settingsScope` 事故） |
 | 2026-10-18 | 新增 `scripts/dsh-safe.sh` 启动守护（隔离冒烟 + 失败自动回滚）与 `scripts/dsh-ocr` OCR 兜底、`dsh-boot-guard` skill、`docs/plugin-audit.md`；补充故障恢复正确流程与危险操作警告 |
+| 2026-10-18 | 通知方案定为跨平台 `dsh-notify-plugin@1.4.6`（macOS osascript+afplay / Windows Toast / Linux notify-send）；移除 Windows-only 的 dsh-notify；审计标明 dsh-video-understand 在 0.2.1 下工具注册失败；守护新增 dump-config 预检与 bundle 全量核对 |

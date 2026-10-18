@@ -6,11 +6,10 @@ set -euo pipefail
 PROFILE="${1:-web}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGINS=(
-  "picturereader@3.3.1"
   "dsh-video-understand@0.5.2"
   "@paicat1/dsh-screenshot@1.2.0"
   "dsh-deepseek-balance@0.1.0"
-  "dsh-better@0.5.5"
+  "dsh-notify-plugin@1.4.6"
 )
 
 say()  { printf '\033[1m%s\033[0m\n' "$*"; }
@@ -47,7 +46,7 @@ cat <<EOF
 
 ✔ 完成。请按顺序做：
   1) 重启 dsh（重启 GUI 服务），插件与 skills 才会生效；
-  2) 通知：设置 → dsh-better → 开启三类通知 → 授权桌面通知（浏览器需允许通知，页面保持打开）；
+  2) 通知：dsh-notify-plugin 默认启用系统通知（macOS osascript + afplay），可在 设置 → 插件 → 通知 调整；
   3) 余额：确认 ~/.dsh/.credentials.yaml 里有 DEEPSEEK_API_KEY（或设同名环境变量）；
   4) 视频理解：安装 ffmpeg —— macOS: brew install ffmpeg ；Linux: sudo apt install ffmpeg ；
   5) OCR（仅 macOS）：node "<dsh 安装目录>/node_modules/picturereader/scripts/setup-macos.mjs"（需 Xcode 命令行工具）

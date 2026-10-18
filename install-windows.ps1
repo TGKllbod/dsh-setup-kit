@@ -7,11 +7,10 @@ param(
 $ErrorActionPreference = "Stop"
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Plugins = @(
-  "picturereader@3.3.1",
   "dsh-video-understand@0.5.2",
   "@paicat1/dsh-screenshot@1.2.0",
   "dsh-deepseek-balance@0.1.0",
-  "dsh-better@0.5.5"
+  "dsh-notify-plugin@1.4.6"
 )
 
 function Say($m)  { Write-Host $m }
@@ -49,8 +48,7 @@ Get-ChildItem $skillDir -Name
 
 完成。请按顺序做：
   1) 重启 dsh（重启 GUI 服务），插件与 skills 才会生效；
-  2) 通知：设置 → dsh-better → 开启三类通知 → 授权桌面通知；
-     另请在「系统设置 → 通知」允许你的浏览器（Chrome/Edge）发送通知；页面需保持打开。
+  2) 通知：dsh-notify-plugin 默认启用系统通知（Windows PowerShell Toast），可在 设置 → 插件 → 通知 调整；
   3) 余额：在 %USERPROFILE%\.dsh\.credentials.yaml 写入 DEEPSEEK_API_KEY: sk-xxx，或设置同名环境变量；
   4) 视频理解：winget install Gyan.FFmpeg  ；并安装 Python：winget install Python.Python.3.13
      （安装后重开终端，确保 python 可用；插件首次调用会自动创建 venv）
