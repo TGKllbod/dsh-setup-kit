@@ -29,7 +29,7 @@ dsh-safe plugin remove <包>
 dsh-safe snapshot / rollback      # 手动快照/回滚
 ```
 配套 `scripts/dsh-ocr`：不依赖插件、长图自动分片的本地 OCR（恢复读图能力的兜底）。
-配套 `scripts/patch-notify-fulltext.sh`（500/4000 + 微信 1800 字分片）与 `scripts/patch-notify-source.sh`（微信来源→单条尽量完整 200/1600；Web→全文分片）；`scripts/patch-notify-length.sh` 为单条轻量版。**插件升级/重装后需重新运行**。
+配套 `scripts/patch-notify-fulltext.sh`（500/4000 + 微信 1800 字分片）与 `scripts/patch-notify-source.sh`（微信来源→最多 2 条 200/3800；Web→完整分片）；`scripts/patch-notify-length.sh` 为单条轻量版。**插件升级/重装后需重新运行**。
 
 ## 常见故障定位
 - 日志出现 `pending（waiting for service: <服务名>）` → 该客户端插件依赖的服务在当前 dsh 版本不存在：移除该插件（deps+bundles）后重启。
