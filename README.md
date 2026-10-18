@@ -110,7 +110,7 @@ install -m 755 scripts/dsh-ocr   ~/.local/bin/dsh-ocr
 
 ```bash
 bash scripts/patch-notify-fulltext.sh   # 全文基础：问题 500 / 回复 4000，微信超 1800 字自动分片
-bash scripts/patch-notify-source.sh     # 来源感知：微信来源→精简单条(200/500)；Web(Mac/PC)→全文(≤12000 字)
+bash scripts/patch-notify-source.sh     # 来源感知：微信来源→单条尽量完整(200/1600，≤1900 截断)；Web(Mac/PC)→全文(≤12000 分片)
 bash scripts/patch-notify-length.sh     # 轻量单条：问题 300 / 回复 1500（不推荐与上面混用）
 ```
 
@@ -258,3 +258,4 @@ rm -rf ~/.dsh/skills/<skill名>                  # 删除某个 skill
 | 2026-10-18 | 新增 `scripts/patch-notify-length.sh`：通知摘要 200/500 → 300/1500 字（微信单条 2000 上限内）；审计补充 Web 卡片不消失、微信仅文本/语音入站等已知限制 |
 | 2026-10-18 | 新增 `scripts/patch-notify-fulltext.sh`：通知摘要 500/4000 字 + 微信长消息按 1800 字分片发送（片间 400ms），解决微信通知显示不全 |
 | 2026-10-18 | 新增 `scripts/patch-notify-source.sh`：来源感知——微信来源的轮次通知精简单条（200/500），Mac/PC（Web）来源不截断（≤12000 字，分片发送） |
+| 2026-10-18 | 修正来源感知摘要上限：微信来源改为**单条尽量完整**（问题 200 / 回复 1600，适配器截断到单条 ≤1900 字，避免"只显示前 500 字"） |
